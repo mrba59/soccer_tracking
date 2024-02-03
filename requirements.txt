@@ -1,0 +1,16 @@
+jupyterlab
+notebook
+pandas
+numpy
+scikit-learn
+matplotlib
+seaborn
+plotly
+streamlit
+openpyxl
+#fastapi
+uvicorn
+gunicorn
+opencv-python-headless
+sportslabkit
+streamlit-aggrid
