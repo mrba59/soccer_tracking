@@ -5,6 +5,8 @@ import argparse
 from math import *
 import numpy as np
 
+
+## old
 parser = argparse.ArgumentParser()
 parser.add_argument('--label', type=str, required=True)
 parser.add_argument('--annotations_dir', type=str, required=True)

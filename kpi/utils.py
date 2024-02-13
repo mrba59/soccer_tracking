@@ -21,6 +21,7 @@ def detect_team(df):
 
 
 def change_trajectory(index, df_ball):
+    # detect change of trajectory
     cosine, angle = get_angle(index, df_ball)
     if cosine < 0:
         return True, cosine, angle
@@ -32,6 +33,7 @@ def change_trajectory(index, df_ball):
 
 
 def get_angle(index, df_ball):
+    # get angle of a trajectory
     x1_ball = float(df_ball.loc[index, "bb_left"]) + float(df_ball.loc[index, "bb_width"]) / 2
     y1_ball = float(df_ball.loc[index, "bb_top"]) + float(df_ball.loc[index, "bb_height"]) / 2
     x0_ball = float(df_ball.loc[index - 1, "bb_left"]) + float(df_ball.loc[index - 1, "bb_width"]) / 2
@@ -135,6 +137,7 @@ def calcul_player_speed(df, pixel_to_meter):
 
 
 def get_density(distance0, distance1, list_id_team0, list_id_team1, id_team):
+    # get density around players
     if id_team == 1:
         density0_5 = [list_id_team0[idx] for idx, val in enumerate(distance0) if float(val) < 0.5]
         density_1 = [list_id_team0[idx] for idx, val in enumerate(distance0) if float(val) < 1 and float(val) > 0.5]
@@ -150,6 +153,7 @@ def get_density(distance0, distance1, list_id_team0, list_id_team1, id_team):
 
 
 def get_closest_player(distance0, distance1, list_id_team0, list_id_team1):
+    # get closest player from the ball
     argmin0 = np.argmin(np.array(distance0))
     argmin1 = np.argmin(np.array(distance1))
     min_team = np.array([distance0[argmin0], distance1[argmin1]])

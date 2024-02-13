@@ -588,15 +588,15 @@ class Passe(Actions):
         x_sup = max(position_start[0], position_end[0])
         team_adverse = abs(self.team_passeur - 1)
         if team_adverse == 0:
-            self.nb_player_elminated = len(
+            self.nb_player_elimine = int(len(
                 [player for player in team0 if
                  player.center_2D[int(self.start + (self.end - self.start) / 2)][0] > x_inf and
-                 player.center_2D[int(self.start + (self.end - self.start) / 2)][0] < x_sup])
+                 player.center_2D[int(self.start + (self.end - self.start) / 2)][0] < x_sup]))
         elif team_adverse == 1:
-            self.nb_player_elminated = len(
+            self.nb_player_elimine = int(len(
                 [player for player in team1 if
                  player.center_2D[int(self.start + (self.end - self.start) / 2)][0] > x_inf and
-                 player.center_2D[int(self.start + (self.end - self.start) / 2)][0] < x_sup])
+                 player.center_2D[int(self.start + (self.end - self.start) / 2)][0] < x_sup]))
 
     def get_succeed(self):
         if self.team_receveur == self.team_passeur:

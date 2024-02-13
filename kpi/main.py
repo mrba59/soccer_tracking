@@ -29,7 +29,7 @@ if __name__ == "__main__":
 
     label_bbox = pd.read_csv(os.path.join(csv_path_bbox), header=None)
     label_2D = pd.read_csv(os.path.join(csv_path_2D), header=None)
-    df_passe = pd.read_csv("passe_predicted.csv", header=0)
+    df_passe = pd.read_csv("../data_processed/passe_predicted.csv", header=0)
     team0_bbox, team1_bbox, ball_bbox = game.detect_team(label_bbox)
     team0_2D, team1_2D, ball_2D = game.detect_team(label_2D)
     # create a dictionnary for both of the team and the ball
@@ -64,7 +64,7 @@ if __name__ == "__main__":
             action.get_stats_passe(game.ball, game.team0['players'], game.team1['players'])
     actions_dict = game.transform_actions_to_dict()
     # [ action.get_player_eliminated(game.team0['player'], game.team1['player']) for action in game.actions]
-    with open("dashboard/src/stats/passes.json", "w") as outfile:
+    with open("../dashboard/src/stats/passes.json", "w") as outfile:
         json.dump(actions_dict, outfile)
     # game.ball.calculate_angles()
     # game.ball.draw_passe()
@@ -76,7 +76,7 @@ if __name__ == "__main__":
     player_stats = game.write_player_stats_json()
     team_stats = game.write_team_stats_json()
     print('ok')
-    with open("dashboard/src/stats/stats_player.json", "w") as outfile:
+    with open("../dashboard/src/stats/stats_player.json", "w") as outfile:
         json.dump(player_stats, outfile)
-    with open("dashboard/src/stats/stats_team.json", "w") as outfile:
+    with open("../dashboard/src/stats/stats_team.json", "w") as outfile:
         json.dump(team_stats, outfile)
