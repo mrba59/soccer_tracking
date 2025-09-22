@@ -38,7 +38,7 @@ datas = datas[datas['type'] == 'tir']
 
 # select the columns you want the users to see
 # old gb = GridOptionsBuilder.from_dataframe(datas[['id', 'second_start', 'second_duration', 'type', 'passeur', 'team_passeur', 'receveur', 'team_receveur', 'succeed']])
-gb = GridOptionsBuilder.from_dataframe(datas)
+gb = GridOptionsBuilder.from_dataframe(datas[['start', 'end', 'id', 'speed', 'tireur','team']])
 
 # configure selection
 gb.configure_selection(selection_mode="single", use_checkbox=True)

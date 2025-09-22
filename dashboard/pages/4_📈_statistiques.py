@@ -2,7 +2,7 @@ import streamlit as st
 import plotly.graph_objects as go
 import pandas as pd
 
-from scripts.soccer_graph import *
+from dashboard.scripts.soccer_graph import *
 
 
 st.set_page_config(

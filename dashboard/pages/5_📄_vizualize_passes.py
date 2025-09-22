@@ -24,9 +24,9 @@ def load_datas():
     df = pd.json_normalize(data, "actions")
     df["team_passeur"] = df["team_passeur"].apply(lambda x: "🔵" if x == 0 else "🔴")
     df["team_receveur"] = df["team_receveur"].apply(lambda x: "🔵" if x == 0 else "🔴")
-    df["succeed"] = df["succeed"].apply(lambda x: "🗹" if x == 1 else "☐")
+    """df["succeed"] = df["succeed"].apply(lambda x: "🗹" if x == 1 else "☐")
     df["in_surface_reparation"] = df["in_surface_reparation"].apply(lambda x: "🗹" if x == 1 else "☐")
-    df["passe_in_last_30m"] = df["passe_in_last_30m"].apply(lambda x: "🗹" if x == 1 else "☐")
+    df["passe_in_last_30m"] = df["passe_in_last_30m"].apply(lambda x: "🗹" if x == 1 else "☐")"""
     df["second_start"] = df["start"].apply(lambda x: round(x / 30, 2))
     df["second_duration"] = df.apply(lambda x: round((x["end"] - x["start"]) / 30, 2), axis=1)
     return df
@@ -38,7 +38,10 @@ datas= datas[datas['type'] == 'passe']
 
 # select the columns you want the users to see
 # old gb = GridOptionsBuilder.from_dataframe(datas[['id', 'second_start', 'second_duration', 'type', 'passeur', 'team_passeur', 'receveur', 'team_receveur', 'succeed']])
-gb = GridOptionsBuilder.from_dataframe(datas)
+gb = GridOptionsBuilder.from_dataframe(datas[['start', 'end', 'id', 'passeur', 'receveur', 'team_passeur',
+       'team_receveur', 'longueur', 'speed', 'nb_player_elimine',
+       'passe_in_last_30m', 'in_surface_reparation', 'succeed',
+       'team']])
 
 # configure selection
 gb.configure_selection(selection_mode="single", use_checkbox=True)

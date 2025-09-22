@@ -107,16 +107,22 @@ class Game:
         """
         Get statistics about teams.
         """
-        count_passe_team0, count_passe_team1, count_passe_succes_team0, count_passe_succes_team1, pourcentage_0, pourcentage_1 = self.count_passe()
+        (count_passe_team0, count_passe_team1, count_passe_succes_team0, count_passe_succes_team1,
+         pourcentage_0, pourcentage_1, pourcentage_in_30_0, pourcentage_in_30_1,
+         count_passe_in_30_team0, count_passe_in_30_team1) = self.count_passe()
         pourcentage_possession_team0, pourcentage_possession_team1 = self.count_possession()
         count_tir_team0, count_tir_team1 = self.count_tir()
         count_centre_team0, count_centre_team1 = self.count_centre()
 
-        self.team0['stats'] = {'total_passe': count_passe_team0, 'pourcentage_passe_reussis': pourcentage_0,
-                               'possession': pourcentage_possession_team0, "total_tir": int(count_tir_team0),
+        self.team0['stats'] = {'total_passe': int(count_passe_team0), 'pourcentage_passe_reussis': int(pourcentage_0),
+                               'possession': int(pourcentage_possession_team0), "total_passe_in30m": int(count_passe_in_30_team0),
+                               "pourcentage_passe_in_30m_reussi": int(pourcentage_in_30_0),
+                               "total_tir": int(count_tir_team0),
                                "total_centre": int(count_centre_team0)}
-        self.team1['stats'] = {'total_passe': count_passe_team1, 'pourcentage_passe_reussis': pourcentage_1,
-                               'possession': pourcentage_possession_team1, "total_tir": int(count_tir_team1),
+        self.team1['stats'] = {'total_passe': int(count_passe_team1), 'pourcentage_passe_reussis': int(pourcentage_1),
+                               'possession': int(pourcentage_possession_team1), "total_passe_in30m": int(count_passe_in_30_team1),
+                               "pourcentage_passe_in_30m_reussi": int(pourcentage_in_30_1),
+                               "total_tir": int(count_tir_team1),
                                "total_centre": int(count_centre_team0)}
 
     def count_centre(self):
@@ -142,9 +148,24 @@ class Game:
         count_passe_team1 = len([passe for passe in actions_passe if passe.team_passeur == 1])
         count_passe_succes_team0 = len([passe for passe in actions_passe if passe.team_passeur == 0 and passe.succeed])
         count_passe_succes_team1 = len([passe for passe in actions_passe if passe.team_passeur == 1 and passe.succeed])
+        count_passe_in_30_team0 = len(
+            [passe for passe in actions_passe if passe.team_passeur == 0 and passe.passe_in_last_30m])
+        count_passe_in_30_team1 = len(
+            [passe for passe in actions_passe if passe.team_passeur == 1 and passe.passe_in_last_30m])
+        count_passe_in_30_suceed_team0 = len(
+            [passe for passe in actions_passe if passe.team_passeur == 0 and passe.passe_in_last_30m and passe.succeed])
+        count_passe_in_30_suceed_team1 = len(
+            [passe for passe in actions_passe if passe.team_passeur == 1 and passe.passe_in_last_30m and passe.succeed])
+
+        """df["in_surface_reparation"] = df["in_surface_reparation"].apply(lambda x: "🗹" if x == 1 else "☐")
+        df["passe_in_last_30m"]"""
         pourcentage_0 = count_passe_succes_team0 / count_passe_team0 * 100
         pourcentage_1 = count_passe_succes_team1 / count_passe_team1 * 100
-        return count_passe_team0, count_passe_team1, count_passe_succes_team0, count_passe_succes_team1, pourcentage_0, pourcentage_1
+        pourcentage_in_30_0 = count_passe_in_30_suceed_team0 / count_passe_in_30_team0 * 100
+        pourcentage_in_30_1 = count_passe_in_30_suceed_team1 / count_passe_in_30_team1 * 100
+        return (count_passe_team0, count_passe_team1, count_passe_succes_team0, count_passe_succes_team1
+                , pourcentage_0, pourcentage_1, pourcentage_in_30_0, pourcentage_in_30_1, count_passe_in_30_team0,
+                count_passe_in_30_team1)
 
     def count_possession(self):
         """
@@ -561,7 +582,8 @@ class Passe(Actions):
         self.speed = distance_passe / (self.end - self.start)
 
     def get_in_surface(self, ball):
-        # start surface 14, 54, 16.5
+        # start surface 14, 54, 16 metres 0.5
+        # dimension 105, 68
         self.in_surface_reparation = False
         position_ball = ball.center_2D[self.end]
         if self.team_passeur == 0:
@@ -625,3 +647,14 @@ class Tir(Actions):
 
         self.tireur = tireur_id
         self.team = tireur_team
+
+    """def get_distance(self, team0, team1, ball):
+
+    ### todo
+
+    def get_shot_speed(self, ball):
+
+    ## todo
+
+    def get_on_target(self, ball):
+## todo"""
