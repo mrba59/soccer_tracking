@@ -1,3 +1,4 @@
+# dashboard/pages/5_📄_liste_des_événements.py
 from pathlib import Path
 import json
 import pandas as pd
@@ -44,33 +45,23 @@ def load_datas(passes_path: Path) -> pd.DataFrame:
 
     df = pd.json_normalize(data, "actions")
 
-    # Colonnes attendues
-    for col in [
-        "team_passeur",
-        "team_receveur",
-        "succeed",
-        "start",
-        "end",
-        "type",
-        "passeur",
-        "receveur",
-        "longueur",
-        "speed",
-        "nb_player_elimine",
-        "passe_in_last_30m",
-        "in_surface_reparation",
-        "team",
-        "id",
-    ]:
+    # Colonnes attendues (créées si manquantes)
+    expected_cols = [
+        "team_passeur", "team_receveur", "succeed", "start", "end", "type",
+        "passeur", "receveur", "longueur", "speed", "nb_player_elimine", "team", "id",
+        "passe_in_last_30m", "in_surface_reparation",
+    ]
+    for col in expected_cols:
         if col not in df.columns:
             df[col] = pd.NA
 
-    # Coercition numérique sûre
-    for col in ["team_passeur", "team_receveur", "start", "end", "passeur", "receveur",
-                "longueur", "speed", "nb_player_elimine", "team", "id"]:
+    # Coercitions sûres
+    num_cols = ["team_passeur", "team_receveur", "start", "end", "passeur", "receveur",
+                "longueur", "speed", "nb_player_elimine", "team", "id"]
+    for col in num_cols:
         df[col] = pd.to_numeric(df[col], errors="coerce")
 
-    # Mapping équipes
+    # Mapping équipes (0 -> 🔵, 1 -> 🔴, NaN/Autre -> ?)
     def team_to_icon(v):
         if pd.isna(v):
             return "?"
@@ -82,7 +73,7 @@ def load_datas(passes_path: Path) -> pd.DataFrame:
     df["team_passeur"] = df["team_passeur"].apply(team_to_icon)
     df["team_receveur"] = df["team_receveur"].apply(team_to_icon)
 
-    # succeed -> icône
+    # succeed → icône (NaN-safe)
     def succeed_to_icon(v):
         if pd.isna(v):
             return "☐"
@@ -99,17 +90,14 @@ def load_datas(passes_path: Path) -> pd.DataFrame:
 
     df["succeed"] = df["succeed"].apply(succeed_to_icon)
 
-    # Timecodes (FPS=30)
+    # Timecodes (FPS=30) + normalisation type
     fps = 30.0
     df["second_start"] = df["start"].apply(lambda x: round(float(x) / fps, 2) if pd.notna(x) else pd.NA)
     df["second_duration"] = df.apply(
         lambda r: round((float(r["end"]) - float(r["start"])) / fps, 2)
-        if pd.notna(r["start"]) and pd.notna(r["end"])
-        else pd.NA,
+        if pd.notna(r["start"]) and pd.notna(r["end"]) else pd.NA,
         axis=1,
     )
-
-    # Normalise 'type'
     df["type"] = df["type"].astype(str).str.strip().str.lower()
 
     return df
@@ -140,8 +128,6 @@ display_cols = [
     "longueur", "speed", "nb_player_elimine", "passe_in_last_30m",
     "in_surface_reparation", "succeed", "team", "second_start", "second_duration",
 ]
-
-# Filtre les colonnes qui existent réellement (au cas où)
 display_cols = [c for c in display_cols if c in datas.columns]
 
 gb = GridOptionsBuilder.from_dataframe(datas[display_cols])
@@ -157,16 +143,40 @@ grid = AgGrid(
     theme="alpine",
 )
 
-selected_row = grid.get("selected_rows", [])
+# ---- Sélection + vidéo robuste ----
+selected_raw = grid.get("selected_rows", None)
 
-# ---- Détails + vidéo ----
-if selected_row:
-    row = selected_row[0]
-    start_time_val = row.get("second_start", 0)
+# Normaliser la sélection -> liste de dicts
+if isinstance(selected_raw, list):
+    selected_rows = selected_raw
+elif hasattr(selected_raw, "to_dict"):
     try:
-        start_time = max(int(float(start_time_val)) - 1, 0)
+        selected_rows = selected_raw.to_dict(orient="records")
     except Exception:
+        selected_rows = []
+else:
+    selected_rows = []
+
+if len(selected_rows) == 0:
+    st.info("Sélectionne une ligne dans le tableau pour afficher la vidéo et les détails.")
+else:
+    row = selected_rows[0]
+
+    fps = 30.0
+    start_val = pd.to_numeric(row.get("start", None), errors="coerce")
+    end_val   = pd.to_numeric(row.get("end", None), errors="coerce")
+
+    # start_time pour st.video (en secondes). On met -1s de marge si possible.
+    if pd.isna(start_val):
         start_time = 0
+    else:
+        start_time = max(int(float(start_val) / fps) - 1, 0)
+
+    # Durée informative (st.video ne coupe pas automatiquement à end)
+    duration_sec = (
+        round(float(end_val - start_val) / fps, 2)
+        if (pd.notna(start_val) and pd.notna(end_val)) else None
+    )
 
     col1, col2 = st.columns(2, gap="large")
 
@@ -176,16 +186,31 @@ if selected_row:
             st.error(f"Vidéo introuvable: {VIDEO_2D_FULL.name}")
         else:
             st.video(video_bytes, start_time=start_time, format="video/mp4")
+            if duration_sec is not None:
+                st.caption(
+                    f"Aperçu lancé à ~{start_time}s • Événement ≈ {duration_sec}s "
+                    "(Streamlit ne coupe pas la vidéo automatiquement à la fin de l'événement)"
+                )
 
     with col2:
         st.subheader("Détails de l'événement")
+
         def _val(k, default="?"):
             v = row.get(k, default)
             return v if (v is not None and v != "") else default
 
-        st.write(f"Début : {_val('second_start')} s")
-        st.write(f"Durée : {_val('second_duration')} s")
+        # Affichages
+        sec_start = row.get("second_start", None)
+        sec_dur   = row.get("second_duration", None)
+        if isinstance(sec_start, (float, int)) and pd.isna(sec_start):
+            sec_start = None
+        if isinstance(sec_dur, (float, int)) and pd.isna(sec_dur):
+            sec_dur = None
+
+        st.write(f"Début : {sec_start if sec_start is not None else round(start_time, 2)} s")
+        st.write(f"Durée : {sec_dur if sec_dur is not None else (duration_sec if duration_sec is not None else '?')} s")
         st.write(f"Type : {_val('type')}")
+
         passeur = _val("passeur")
         receveur = _val("receveur")
         tp = _val("team_passeur", "")
