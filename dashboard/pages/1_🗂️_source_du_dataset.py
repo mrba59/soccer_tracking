@@ -1,10 +1,46 @@
-import json
+# --- robust path bootstrap (works for both /dashboard and /dashboard/pages) ---
+import sys, os
 from pathlib import Path
+import streamlit as st  # ok to import st early here
 
-import pandas as pd
-import streamlit as st
+THIS_FILE = Path(__file__).resolve()
 
-from dashboard.src.path import DATA_DIR, path_exists_debug
+def find_repo_root(start: Path) -> Path:
+    """Ascend until we find a folder that contains 'dashboard/src'."""
+    for anc in [start] + list(start.parents):
+        if (anc / "dashboard" / "src").exists():
+            return anc
+    # Fallbacks: handle both cases
+    if start.parent.name == "dashboard":       # .../soccer_tracking/dashboard/streamlit_app.py
+        return start.parents[1]                # .../soccer_tracking
+    if start.parent.name == "pages":           # .../dashboard/pages/1_*.py
+        return start.parents[2]                # .../soccer_tracking
+    return start.parents[1]                    # safest default
+
+REPO_ROOT = find_repo_root(THIS_FILE)
+DASH_DIR  = REPO_ROOT / "dashboard"
+SRC_DIR   = DASH_DIR / "src"
+
+# prepend to sys.path if needed
+for p in (REPO_ROOT, DASH_DIR, SRC_DIR):
+    p_str = str(p)
+    if p_str not in sys.path:
+        sys.path.insert(0, p_str)
+
+# quick debug so we see what's happening on Streamlit Cloud
+with st.expander("🔧 Import debug (bootstrap)"):
+    st.write({
+        "THIS_FILE": str(THIS_FILE),
+        "REPO_ROOT": str(REPO_ROOT),
+        "DASH_DIR": str(DASH_DIR),
+        "SRC_DIR_exists": SRC_DIR.exists(),
+        "SRC_DIR_list": [x.name for x in SRC_DIR.glob("*.py")] if SRC_DIR.exists() else "absent",
+        "sys.path[:3]": sys.path[:3],
+    })
+
+# now the canonical import
+from dashboard.src.paths import DATA_DIR, path_exists_debug
+
 
 st.set_page_config(
     page_title="Soccer Stats - Source du dataset",
