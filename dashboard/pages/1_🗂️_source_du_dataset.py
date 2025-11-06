@@ -4,7 +4,7 @@ from pathlib import Path
 import pandas as pd
 import streamlit as st
 
-from dashboard.src.paths import DATA_DIR, path_exists_debug
+from dashboard.src.path import DATA_DIR, path_exists_debug
 
 st.set_page_config(
     page_title="Soccer Stats - Source du dataset",
