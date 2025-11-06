@@ -39,7 +39,7 @@ with st.expander("🔧 Import debug (bootstrap)"):
     })
 
 # now the canonical import
-from dashboard.src.paths import DATA_DIR, path_exists_debug
+from dashboard.src.path import DATA_DIR, path_exists_debug
 
 
 st.set_page_config(
