@@ -2,6 +2,7 @@
 import sys, os
 from pathlib import Path
 import streamlit as st  # ok to import st early here
+import pandas as pd
 
 THIS_FILE = Path(__file__).resolve()
 
