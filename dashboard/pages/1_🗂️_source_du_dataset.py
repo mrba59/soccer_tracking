@@ -3,6 +3,7 @@ import sys, os
 from pathlib import Path
 import streamlit as st  # ok to import st early here
 import pandas as pd
+import json
 
 THIS_FILE = Path(__file__).resolve()
 
