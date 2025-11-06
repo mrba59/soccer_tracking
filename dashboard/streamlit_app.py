@@ -1,4 +1,35 @@
+import sys, os
+from pathlib import Path
 import streamlit as st
+
+REPO_ROOT = Path(__file__).resolve().parents[2]   
+DASH_DIR  = REPO_ROOT / "dashboard"
+SRC_DIR   = DASH_DIR / "src"
+
+for p in (str(REPO_ROOT), str(DASH_DIR), str(SRC_DIR)):
+    if p not in sys.path:
+        sys.path.insert(0, p)
+# Try the canonical import first
+try:
+    from dashboard.src.paths import DATA_DIR, path_exists_debug
+except ModuleNotFoundError:
+    # fallback: show helpful debug & try legacy filename if it exists
+    st.warning("ModuleNotFoundError: tentative de debug des chemins…")
+    st.code({
+        "cwd": os.getcwd(),
+        "REPO_ROOT": str(REPO_ROOT),
+        "DASH_DIR": str(DASH_DIR),
+        "SRC_DIR": str(SRC_DIR),
+        "sys.path_head": sys.path[:3],
+        "src_list": [p.name for p in SRC_DIR.glob('*.py')] if SRC_DIR.exists() else "src/ absent",
+    })
+    try:
+        # au cas où le fichier serait encore nommé path.py
+        from dashboard.src.path import DATA_DIR, path_exists_debug  # noqa
+        st.info("Import réussi depuis dashboard.src.path (ancien nom).")
+    except ModuleNotFoundError as e:
+        st.error("Impossible d'importer paths.py ni path.py. Vérifie la casse, le chemin et le commit.")
+        raise
 
 st.set_page_config(
     page_title="Soccer Stats - Home",
