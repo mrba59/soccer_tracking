@@ -1,6 +1,6 @@
 # Soccer Tracker Stats
 
-https://soccer-tracker-stats-de9791626434.herokuapp.com/
+soccertracking-4cryimtt3qmunxdqrqfqu7.streamlit.app/
 
 ## Introduction
 
